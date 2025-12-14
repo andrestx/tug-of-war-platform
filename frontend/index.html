@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funia Întrebărilor - Platformă Educațională</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase UI -->
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebaseui/6.0.0/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebaseui/6.0.0/firebaseui.css" />
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <p>Se încarcă platforma...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-people-pulling"></i>
+                    <h1>Funia Întrebărilor</h1>
+                </div>
+                <div class="nav-links" id="nav-links">
+                    <a href="#" id="home-link" class="nav-link active"><i class="fas fa-home"></i> Acasă</a>
+                    <a href="#" id="profile-link" class="nav-link"><i class="fas fa-user"></i> Profil</a>
+                    <a href="#" id="sessions-link" class="nav-link"><i class="fas fa-chalkboard"></i> Sesiuni</a>
+                    <a href="#" id="logout-link" class="nav-link"><i class="fas fa-sign-out-alt"></i> Deconectare</a>
+                </div>
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome/Role Selection Screen -->
+            <section id="welcome-screen" class="screen active">
+                <div class="hero-section">
+                    <div class="hero-content">
+                        <h2>Transformă învățarea într-o aventura!</h2>
+                        <p>O platformă interactivă unde profesorii creează jocuri educative iar elevii concurează într-un joc de tras funia bazat pe cunoștințe.</p>
+                        
+                        <div class="role-selection">
+                            <div class="role-card" id="student-card">
+                                <div class="role-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <h3>Sunt Elev</h3>
+                                <p>Vreau să particip la jocuri educative</p>
+                                <button class="btn btn-primary btn-block" id="select-student">Alege</button>
+                            </div>
+                            
+                            <div class="role-card" id="teacher-card">
+                                <div class="role-icon">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <h3>Sunt Profesor</h3>
+                                <p>Vreau să creez și să administrez jocuri</p>
+                                <button class="btn btn-primary btn-block" id="select-teacher">Alege</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Educație interactivă">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication Screen -->
+            <section id="auth-screen" class="screen">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <h2 id="auth-title">Autentificare</h2>
+                        
+                        <!-- Firebase Auth UI Container -->
+                        <div id="firebaseui-auth-container"></div>
+                        
+                        <!-- Custom Auth Form (fallback) -->
+                        <form id="custom-auth-form" class="hidden">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Parolă</label>
+                                <input type="password" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Continuă</button>
+                        </form>
+                        
+                        <div class="auth-footer">
+                            <p id="auth-switch-text">Nu ai cont? <a href="#" id="auth-switch">Înregistrează-te</a></p>
+                            <p><a href="#" id="forgot-password">Ai uitat parola?</a></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Student Dashboard -->
+            <section id="student-dashboard" class="screen">
+                <div class="dashboard-header">
+                    <h2>Panoul Elevului</h2>
+                    <div class="user-welcome">
+                        <span id="student-name"></span>
+                        <div class="user-avatar" id="student-avatar"></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <!-- Join Session Card -->
+                    <div class="card join-session-card">
+                        <h3><i class="fas fa-gamepad"></i> Alătură-te unei sesiuni</h3>
+                        <p>Introdu codul sesiunii primit de la profesor:</p>
+                        <div class="join-form">
+                            <input type="text" id="session-code-input" placeholder="Ex: ABC123" maxlength="6" class="session-code">
+                            <button id="join-session-btn" class="btn btn-success">
+                                <i class="fas fa-sign-in-alt"></i> Intră în sesiune
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Games -->
+                    <div class="card active-games-card">
+                        <h3><i class="fas fa-play-circle"></i> Jocuri Active</h3>
+                        <div id="active-games-list" class="games-list">
+                            <!-- Games will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Game History -->
+                    <div class="card history-card">
+                        <h3><i class="fas fa-history"></i> Istoric Jocuri</h3>
+                        <div id="game-history" class="history-list">
+                            <!-- History will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Teacher Dashboard -->
+            <section id="teacher-dashboard" class="screen">
+                <div class="dashboard-header">
+                    <h2>Panoul Profesorului</h2>
+                    <div class="dashboard-actions">
+                        <button id="create-session-btn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Sesiune nouă
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <!-- Statistics -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="total-sessions">0</h3>
+                                <p>Sesiuni create</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="total-questions">0</h3>
+                                <p>Întrebări create</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="total-students">0</h3>
+                                <p>Elevi participanți</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="active-games">0</h3>
+                                <p>Jocuri active</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sessions List -->
+                    <div class="card sessions-card">
+                        <h3><i class="fas fa-list"></i> Sesiunile mele</h3>
+                        <div class="table-container">
+                            <table id="sessions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nume</th>
+                                        <th>Cod</th>
+                                        <th>Materie</th>
+                                        <th>Status</th>
+                                        <th>Participanți</th>
+                                        <th>Acțiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessions-list">
+                                    <!-- Sessions will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Create Session Screen -->
+            <section id="create-session-screen" class="screen">
+                <div class="screen-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Înapoi
+                    </button>
+                    <h2>Creează Sesiune Nouă</h2>
+                </div>
+
+                <div class="session-creator">
+                    <!-- Session Basic Info -->
+                    <div class="card session-info-card">
+                        <h3><i class="fas fa-info-circle"></i> Informații Sesiune</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="session-name">Nume Sesiune *</label>
+                                <input type="text" id="session-name" placeholder="Ex: Test Istorie - Primul Război Mondial" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-subject">Materie *</label>
+                                <select id="session-subject" required>
+                                    <option value="">Selectează materia</option>
+                                    <option value="istorie">Istorie</option>
+                                    <option value="matematica">Matematică</option>
+                                    <option value="romana">Limba Română</option>
+                                    <option value="geografie">Geografie</option>
+                                    <option value="biologie">Biologie</option>
+                                    <option value="fizica">Fizică</option>
+                                    <option value="chimie">Chimie</option>
+                                    <option value="engleza">Engleză</option>
+                                    <option value="informatica">Informatică</option>
+                                    <option value="franceza">Franceză</option>
+                                    <option value="educatie_fizica">Educație Fizică</option>
+                                    <option value="educatie_plastică">Educație Plastică</option>
+                                    <option value="muzica">Muzică</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-grade">Clasă</label>
+                                <select id="session-grade">
+                                    <option value="">Orice clasă</option>
+                                    <option value="1">Clasa I</option>
+                                    <option value="2">Clasa a II-a</option>
+                                    <option value="3">Clasa a III-a</option>
+                                    <option value="4">Clasa a IV-a</option>
+                                    <option value="5">Clasa a V-a</option>
+                                    <option value="6">Clasa a VI-a</option>
+                                    <option value="7">Clasa a VII-a</option>
+                                    <option value="8">Clasa a VIII-a</option>
+                                    <option value="9">Clasa a IX-a</option>
+                                    <option value="10">Clasa a X-a</option>
+                                    <option value="11">Clasa a XI-a</option>
+                                    <option value="12">Clasa a XII-a</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-time">Timp per întrebare (secunde)</label>
+                                <input type="number" id="session-time" min="5" max="60" value="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Questions Builder -->
+                    <div class="card questions-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-question-circle"></i> Întrebări</h3>
+                            <button id="add-question-btn" class="btn btn-secondary">
+                                <i class="fas fa-plus"></i> Adaugă întrebare
+                            </button>
+                        </div>
+                        
+                        <div id="questions-container" class="questions-container">
+                            <!-- Questions will be added here -->
+                        </div>
+                        
+                        <div class="card-footer">
+                            <button id="save-session-btn" class="btn btn-primary btn-large">
+                                <i class="fas fa-save"></i> Creează Sesiunea
+                            </button>
+                            <button id="preview-session-btn" class="btn btn-secondary">
+                                <i class="fas fa-eye"></i> Previzualizează
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game Screen -->
+            <section id="game-screen" class="screen">
+                <div id="game-container">
+                    <!-- Game content will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Live Session Screen (Teacher) -->
+            <section id="live-session-screen" class="screen">
+                <div class="live-session-container">
+                    <!-- Live session content will be loaded here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Funia Întrebărilor</h4>
+                    <p>Platformă educațională interactivă pentru școli din România</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>support@funia-intrebarilor.ro</p>
+                    <p>+40 721 123 456</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <a href="#">Termeni și condiții</a>
+                    <a href="#">Politica de confidențialitate</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Funia Întrebărilor. Toate drepturile rezervate.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="session-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
